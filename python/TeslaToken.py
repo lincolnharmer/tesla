@@ -9,20 +9,20 @@ import getpass
 from random import choice
 from string import hexdigits
 
-email = raw_input('email: ')
+email = input('email: ')
 password = getpass.getpass('password: ')
-passcode = raw_input('passcode: ')
+passcode = input('passcode: ')
 
 # Step 1: Obtain the login page
 code_verifier = ''.join(choice(hexdigits) for i in range(86))
-#print('code: ' + code_verifier)
+print('code: ' + code_verifier)
 
 code_challenge = base64.b64encode(
   hashlib.sha256(
     code_verifier.encode('utf-8')
   ).digest()
-)
-#print('challenge: ' + code_challenge)
+).decode()
+print('challenge: ' + code_challenge)
 
 url = ('https://auth.tesla.com/oauth2/v3/authorize'
        + '?client_id=ownerapi'
@@ -30,39 +30,40 @@ url = ('https://auth.tesla.com/oauth2/v3/authorize'
        + code_challenge
        + '&code_challenge_method=S256'
        + '&redirect_uri=' 
-       + urllib.quote('https://auth.tesla.com/void/callback')
+       + urllib.parse.quote('https://auth.tesla.com/void/callback')
        + '&response_type=code'
        + '&scope=' 
-       + urllib.quote('openid email offline_access')
+       + urllib.parse.quote('openid email offline_access')
        + '&state=state')
-#print('url: ' + url)
+
+print('url: ' + url)
 
 response = requests.get(url)
 #print(response.content)
 
 csrf = response.content[
-         response.content.find('name="_csrf"') + 20: 
-         response.content.find('name="_csrf"') + 56
+         response.content.decode('utf-8').find('name="_csrf"') + 20: 
+         response.content.decode('utf-8').find('name="_csrf"') + 56
        ]
 phase = response.content[
-          response.content.find('name="_phase"') + 21: 
-          response.content.find('name="_phase"') + 33
+          response.content.decode('utf-8').find('name="_phase"') + 21: 
+          response.content.decode('utf-8').find('name="_phase"') + 33
         ]
 process = response.content[
-            response.content.find('name="_process"') + 23: 
-            response.content.find('name="_process"') + 24
+            response.content.decode('utf-8').find('name="_process"') + 23: 
+            response.content.decode('utf-8').find('name="_process"') + 24
           ]
 transaction_id = response.content[
-                   response.content.find('name="transaction_id"') + 29: 
-                   response.content.find('name="transaction_id"') + 37
-                 ]
+                   response.content.decode('utf-8').find('name="transaction_id"') + 29: 
+                   response.content.decode('utf-8').find('name="transaction_id"') + 37
+                 ].decode()
 cookie = response.headers.get('Set-Cookie')
 
 #print('csrf: ' + csrf)
 #print('phase: ' + phase)
 #print('process: ' + process)
-#print('trasaction_id: ' + transaction_id)
-#print('cookie: ' + cookie)
+print('trasaction_id: ' + transaction_id)
+print('cookie: ' + cookie)
 
 # Step 2: Authenticate user name and password
 payload = {
@@ -109,10 +110,10 @@ url = ('https://auth.tesla.com/oauth2/v3/authorize'
         + code_challenge
         + '&code_challenge_method=S256'
         + '&redirect_uri=' 
-        + urllib.quote('https://auth.tesla.com/void/callback')
+        + urllib.parse.quote('https://auth.tesla.com/void/callback')
         + '&response_type=code'
         + '&scope=' 
-        + urllib.quote('openid email offline_access')
+        + urllib.parse.quote('openid email offline_access')
         + '&state=state')
 payload = {
   'transaction_id': transaction_id
@@ -126,10 +127,10 @@ response = requests.post(
            )
 
 code = response.content[
-         response.content.find('code') + 5: 
-         response.content.find('&')
-       ]
-#print('code: ' + code)
+         response.content.decode('utf-8').find('code') + 5: 
+         response.content.decode('utf-8').find('&')
+       ].decode()
+print('code: ' + code)
 
 # Step 5: Exchange authorization code for bearer token
 url = 'https://auth.tesla.com/oauth2/v3/token'
