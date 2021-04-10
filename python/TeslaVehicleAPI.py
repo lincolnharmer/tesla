@@ -1,17 +1,22 @@
 import requests
 import json
 import time
-import configparser
+#import configparser
 
-from Logger import *
+#from Logger import *
 
 WAIT_TIME = 30 
 
-config = configparser.ConfigParser()
-config.sections()
-config.read('config.ini')
-ACCESS_TOKEN = config['vehicle']['access_token']
+#config = configparser.ConfigParser()
+#config.sections()
+#config.read('config.ini')
 
+#replace this token if needed
+ACCESS_TOKEN = "qts-5c0cdf1a2b5d6e0163cc914408a036a623c97fc05711d6f6fe223deec2de7b4f"
+
+# put this after def that you want to run
+x=preconditionCarStop('5YJ3E1EAXJF015906')
+print(x)
 
 ##
 # Retrieves the vehicle ID, which changes from time to time, by the VIN, which 
@@ -170,7 +175,6 @@ def preconditionCarStart(vin):
     )
   except Exception as e:
     logError('preconditionCarStart(' + vin + '): ' + str(e))
-
 
 ##
 # Function to stop vehicle preconditioning.
